@@ -553,6 +553,15 @@ public class CallTrackingAPIServiceImpl implements CallTrackingAPIService {
                     )){
                 call.setNumber(call.getNumber().substring(1));
             }
+
+            //System.out.println(call.getNumber() + " / "  + call.getNumber().length() + " / " + call.getNumber().substring(0,2) + " / " + call.getNumber().substring(2));
+
+            if(call.getNumber().length() >= 12 &&
+                    (
+                        call.getNumber().substring(0, 2).equals("00")
+                            )){
+                call.setNumber(call.getNumber().substring(2));
+            }
         }
     }
 

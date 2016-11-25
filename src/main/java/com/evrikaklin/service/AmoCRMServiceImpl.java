@@ -9,6 +9,8 @@ import com.evrikaklin.exception.APIAuthException;
 import com.evrikaklin.settings.ProjectSettings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,10 +19,12 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -47,6 +51,7 @@ public class AmoCRMServiceImpl implements AmoCRMService {
     private Integer maxRelogins;
     private Integer relogins = 0;
 
+    private static final Logger log = LoggerFactory.getLogger(AmoCRMServiceImpl.class);
 
     @Override
     public void logIn() throws APIAuthException {
@@ -224,12 +229,25 @@ public class AmoCRMServiceImpl implements AmoCRMService {
 
     @Override
     public void addContactsToLead(ArrayList<AmoCRMContact> amoCRMContacts, AmoCRMLead amoCRMLead) throws APIAuthException {
+        if(amoCRMLead.getId() == null){
+            throw new IllegalStateException("amoCRMLead w/o id! Was it loaded properly?");
+        }
+
+        ArrayList<AmoCRMContact> updatedContacts = new ArrayList<>();
+
         for (AmoCRMContact amoCRMContact : amoCRMContacts) {
-            amoCRMContact.addLinkedLeadById(amoCRMLead.getId());
+            if(amoCRMContact.getId() == null){
+                throw new IllegalStateException("amoCRMContact w/o id! Was it loaded properly?");
+            }
+            //log.info("update amoCRMContact#" + amoCRMContact.getId() + " entity (last_modified=" + amoCRMContact.getLast_modified() + ")");
+            AmoCRMContact amoCRMContact1 = this.getContactById(amoCRMContact.getId());
+            //log.info("amoCRMContact#" + amoCRMContact1.getId() + " updated. last_modified=" + amoCRMContact1.getLast_modified());
+            amoCRMContact1.addLinkedLeadById(amoCRMLead.getId());
+            updatedContacts.add(amoCRMContact1);
         }
 
         AmoCRMEntities amoCRMEntities = new AmoCRMEntities();
-        amoCRMEntities.setUpdate(amoCRMContacts);
+        amoCRMEntities.setUpdate(updatedContacts);
 
         AmoCRMCreatedContactsResponse amoCRMCreatedContactsResponse = this.editContacts(amoCRMEntities);
 
@@ -465,6 +483,7 @@ public class AmoCRMServiceImpl implements AmoCRMService {
 
 
         HttpEntity<T> response;
+        HttpEntity<String> respStr;
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -475,30 +494,41 @@ public class AmoCRMServiceImpl implements AmoCRMService {
                         amoCRMRequest, this.getApiBaseUrl().concat(url)
                 );
 
-                response = restTemplate.exchange(
+                log.info("get: " + uriComponentsBuilder.build().encode().toUri());
+
+                respStr = restTemplate.exchange(
                         uriComponentsBuilder.build().encode().toUri(),
-                        amoCRMRequest.getHttpMethod(), requestHttpEntity, cl
+                        amoCRMRequest.getHttpMethod(), requestHttpEntity, String.class
                 );
             } else {
                 HttpEntity<AmoCRMRequest> requestHttpEntity = jsonHttpEntity(amoCRMRequest);
 
-
                 try {
-                    System.out.println(objectMapper.writeValueAsString(requestHttpEntity.getBody()));
+                    log.info(objectMapper.writeValueAsString(requestHttpEntity.getBody()));
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                     System.out.println("Cant present response as JSON object!");
                 }
 
-                response = restTemplate.exchange(
+                respStr = restTemplate.exchange(this.getApiBaseUrl().concat(url),
+                        amoCRMRequest.getHttpMethod(), requestHttpEntity, String.class);
+
+                /*response = restTemplate.exchange(
                         this.getApiBaseUrl().concat(url),
                         amoCRMRequest.getHttpMethod(), requestHttpEntity, cl
-                );
+                );*/
             }
 
             this.relogins = 0;
+            if(respStr.getBody() == null){
+                return new HttpEntity<T>(respStr.getHeaders());
+            }
 
-            return response;
+            log.info("response body: " + respStr.getBody());
+            ObjectMapper om = new ObjectMapper();
+            T result = om.readValue(respStr.getBody().getBytes(), cl);
+            response = new HttpEntity<T>(result);
+
         } catch (APIRequestErrorException e) {
             System.out.println("request to amocrm failed with error: " + e.getParams().toString());
 
@@ -513,10 +543,16 @@ public class AmoCRMServiceImpl implements AmoCRMService {
                     return null;
                 }
             } else return null;
+        } catch (IOException e) {
+            log.error("I/O Exception while http request processing!");
+            e.printStackTrace();
+            return null;
         } catch (RuntimeException e){
+            log.error("Runtime Exception while http request");
             e.printStackTrace();
             return null;
         }
+        return response;
     }
 
     @Override

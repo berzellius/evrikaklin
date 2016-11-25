@@ -50,8 +50,8 @@ public class RestController extends BaseController {
             @RequestBody
             CallRequest callRequest
     ) throws NotFoundException {
-        System.out.println("webhook! " + callRequest.toString());
-        throw new NotFoundException("out of service!");
-        //return webhookService.newCallFromWebhook(callRequest);
+        //System.out.println("webhook! " + callRequest.toString());
+        //throw new NotFoundException("out of service!");
+        return webhookService.newCallFromWebhook(callRequest);
     }
 }

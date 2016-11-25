@@ -168,6 +168,9 @@ public class IncomingCallBusinessProcessImpl implements IncomingCallBusinessProc
                 }
             }
         }
+        else{
+            log.info("leads not found!");
+        }
 
         // Не найдено сделок
         if (foundOpenedLeads == 0 && CREATE_LEAD_IF_ABSENT) {
