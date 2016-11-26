@@ -150,6 +150,7 @@ public class IncomingCallBusinessProcessImpl implements IncomingCallBusinessProc
         checkExistingContactCustomFields(contact, call);
 
         Integer foundOpenedLeads = 0;
+        AmoCRMLead amoCRMLeadToWorkWith = null;
         if (leadIds != null && leadIds.size() != 0) {
             log.info("Leads found. Checking statuses");
             for (Long leadId : leadIds) {
@@ -163,6 +164,7 @@ public class IncomingCallBusinessProcessImpl implements IncomingCallBusinessProc
                         log.info("Lead is open!");
                         //amoCRMLeadToWorkWith = amoCRMLead;
                         foundOpenedLeads++;
+                        amoCRMLeadToWorkWith = amoCRMLead;
                         checkExistingLeadCustomFields(amoCRMLead, call);
                     }
                 }
@@ -175,11 +177,11 @@ public class IncomingCallBusinessProcessImpl implements IncomingCallBusinessProc
         // Не найдено сделок
         if (foundOpenedLeads == 0 && CREATE_LEAD_IF_ABSENT) {
             log.info("We need to create lead for contact #" + contact.getId());
-            AmoCRMLead amoCRMLeadToWorkWith = this.createLeadForContact(contact, call);
+            amoCRMLeadToWorkWith = this.createLeadForContact(contact, call);
         }
         else{
             log.info("Found leads for contact #" + contact.getId() + ". We need to create task for new call");
-            this.createTasksForCall(contact, call);
+            this.createTasksForCall(amoCRMLeadToWorkWith, contact, call);
         }
 
 
@@ -222,10 +224,14 @@ public class IncomingCallBusinessProcessImpl implements IncomingCallBusinessProc
         */
     }
 
-    private void createTasksForCall(AmoCRMContact contact, Call call) throws APIAuthException {
+    private void createTasksForCall(AmoCRMLead amoCRMLead, AmoCRMContact contact, Call call) throws APIAuthException {
         if(CREATE_TASK_FOR_EACH_CALL) {
             AmoCRMTask amoCRMTask = new AmoCRMTask();
-            amoCRMTask.setResponsible_user_id(getDefaultUserId());
+
+            Long responsibleUser = (amoCRMLead.getResponsible_user_id() != null)?
+                    amoCRMLead.getResponsible_user_id() : getDefaultUserId();
+
+            amoCRMTask.setResponsible_user_id(responsibleUser);
             amoCRMTask.setContact(contact);
 
             // Связаться с клиентом
