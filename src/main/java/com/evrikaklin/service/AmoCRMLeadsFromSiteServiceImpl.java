@@ -43,6 +43,9 @@ public class AmoCRMLeadsFromSiteServiceImpl implements AmoCRMLeadsFromSiteServic
     private String emailContactEnum;
     private Long phoneNumberContactStockField;
     private String phoneNumberStockFieldContactEnumWork;
+    private Long areaLeadField;
+    private Long buildTypeLeadField;
+    private Long cleanTypeLeadField;
 
     private Long leadFromSiteTagId;
 
@@ -531,5 +534,32 @@ public class AmoCRMLeadsFromSiteServiceImpl implements AmoCRMLeadsFromSiteServic
     @Override
     public void setLeadFromSiteTagId(Long leadFromSiteTagId) {
         this.leadFromSiteTagId = leadFromSiteTagId;
+    }
+
+    public Long getAreaLeadField() {
+        return areaLeadField;
+    }
+
+    @Override
+    public void setAreaLeadField(Long areaLeadField) {
+        this.areaLeadField = areaLeadField;
+    }
+
+    public Long getBuildTypeLeadField() {
+        return buildTypeLeadField;
+    }
+
+    @Override
+    public void setBuildTypeLeadField(Long buildTypeLeadField) {
+        this.buildTypeLeadField = buildTypeLeadField;
+    }
+
+    public Long getCleanTypeLeadField() {
+        return cleanTypeLeadField;
+    }
+
+    @Override
+    public void setCleanTypeLeadField(Long cleanTypeLeadField) {
+        this.cleanTypeLeadField = cleanTypeLeadField;
     }
 }

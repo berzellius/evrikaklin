@@ -18,6 +18,9 @@ public class Lead {
     private String email;
     private String phone;
     private String comment;
+    private String area;
+    private String build_type;
+    private String clean_type;
     private String referer;
     private String origin;
     /*
@@ -115,5 +118,29 @@ public class Lead {
 
     public void setOrigin(String origin) {
         this.origin = origin;
+    }
+
+    public String getArea() {
+        return area;
+    }
+
+    public void setArea(String area) {
+        this.area = area;
+    }
+
+    public String getBuild_type() {
+        return build_type;
+    }
+
+    public void setBuild_type(String build_type) {
+        this.build_type = build_type;
+    }
+
+    public String getClean_type() {
+        return clean_type;
+    }
+
+    public void setClean_type(String clean_type) {
+        this.clean_type = clean_type;
     }
 }

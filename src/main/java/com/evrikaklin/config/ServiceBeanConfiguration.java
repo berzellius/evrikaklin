@@ -209,7 +209,11 @@ public class ServiceBeanConfiguration {
         amoCRMLeadsFromSiteService.setPhoneNumberStockFieldContactEnumWork(APISettings.AmoCRMPhoneNumberStockFieldContactEnumWork);
         amoCRMLeadsFromSiteService.setCommentCustomField(APISettings.AMOCRMLeadCommentField);
         amoCRMLeadsFromSiteService.setLeadFromSiteTagId(APISettings.AMOCRMLeadFromSiteTagId);
+        amoCRMLeadsFromSiteService.setAreaLeadField(APISettings.AmoCRMAreaLeadCustomField);
+        amoCRMLeadsFromSiteService.setBuildTypeLeadField(APISettings.AmoCRMBuildTypeCustomField);
+        amoCRMLeadsFromSiteService.setCleanTypeLeadField(APISettings.AmoCRMCleanTypeCustomField);
        // amoCRMLeadsFromSiteService.setProjectIdToLeadsSource(projectIdToLeadsSource());
+
 
 
         return amoCRMLeadsFromSiteService;

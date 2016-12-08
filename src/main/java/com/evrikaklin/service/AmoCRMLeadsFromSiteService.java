@@ -55,4 +55,10 @@ public interface AmoCRMLeadsFromSiteService {
     void setCommentCustomField(Long commentCustomField);
 
     void setLeadFromSiteTagId(Long leadFromSiteTagId);
+
+    void setAreaLeadField(Long areaLeadField);
+
+    void setBuildTypeLeadField(Long buildTypeLeadField);
+
+    void setCleanTypeLeadField(Long cleanTypeLeadField);
 }
