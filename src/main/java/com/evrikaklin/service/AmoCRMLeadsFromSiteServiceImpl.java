@@ -218,6 +218,21 @@ public class AmoCRMLeadsFromSiteServiceImpl implements AmoCRMLeadsFromSiteServic
             lead.addStringValuesToCustomField(this.getCommentCustomField(), commentField);
         }
 
+        if(leadFromSite.getLead().getArea() != null){
+            String[] areaField = {leadFromSite.getLead().getArea()};
+            lead.addStringValuesToCustomField(this.getAreaLeadField(), areaField);
+        }
+
+        if(leadFromSite.getLead().getBuild_type() != null){
+            String[] buildTypeField = {leadFromSite.getLead().getBuild_type()};
+            lead.addStringValuesToCustomField(this.getBuildTypeLeadField(), buildTypeField);
+        }
+
+        if(leadFromSite.getLead().getClean_type() != null){
+            String[] cleanTypeField = {leadFromSite.getLead().getClean_type()};
+            lead.addStringValuesToCustomField(this.getCleanTypeLeadField(), cleanTypeField);
+        }
+
         String[] fieldProject = {leadFromSite.getSite().getCrmLeadSourceId()};
         lead.addStringValuesToCustomField(this.getSourceLeadsCustomField(), fieldProject);
 

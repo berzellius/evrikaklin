@@ -47,7 +47,7 @@ public class SchedulerImpl implements MainScheduler {
     @Autowired
     ScheduledTasks scheduledTasks;
 
-    //@Scheduled(fixedDelay = 120000)
+    @Scheduled(fixedDelay = 60000)
     @Override
     public void newLeadsFromSiteToCRM(){
         scheduledTasks.newLeadsFromSiteToCRM();
@@ -119,19 +119,19 @@ public class SchedulerImpl implements MainScheduler {
 
         //if(hour >= 22 || hour <= 8) {
             runImportCallsToCRM();
-        //}
-    }
+            //}
+        }
 
 
-    //@Scheduled(fixedDelay = 600000)
-    @Override
-    public void newLeads(){
+        //@Scheduled(fixedDelay = 60000)
+        @Override
+        public void newLeads(){
 
-        int hour = hourOfDay();
+            int hour = hourOfDay();
 
-        //if((hour >= 3 && hour <= 4) || (hour >= 22 && hour <= 23))
-        //runNewAmoCRMLeadsFromSiteProcessing();
-    }
+            //if((hour >= 3 && hour <= 4) || (hour >= 22 && hour <= 23))
+            //runNewAmoCRMLeadsFromSiteProcessing();
+        }
 
     private void runNewAmoCRMLeadsFromSiteProcessing(){
         try {
