@@ -149,13 +149,18 @@ public class AmoCRMLeadsFromSiteServiceImpl implements AmoCRMLeadsFromSiteServic
             CallTrackingSourceCondition callTrackingSourceCondition = callTrackingSourceConditionService.getCallTrackingSourceConditionByUtmAndProjectId(utmSource, utmMedium, utmCampaign, leadFromSite.getSite().getCallTrackingProjectId());
 
             if(callTrackingSourceCondition != null){
-                AmoCRMContact contact = contactForLeadFromSite(leadFromSite, callTrackingSourceCondition.getSourceName());
+                if(leadFromSite.getLead().getEmail() != null || leadFromSite.getLead().getPhone() != null) {
+                    AmoCRMContact contact = contactForLeadFromSite(leadFromSite, callTrackingSourceCondition.getSourceName());
 
-                if(contact == null){
-                    throw new RuntimeException("seems to be contact was not created and not exists for leadFromSite#" + leadFromSite.getId());
+                    if (contact == null) {
+                        throw new RuntimeException("seems to be contact was not created and not exists for leadFromSite#" + leadFromSite.getId());
+                    }
+
+                    this.workWithContact(leadFromSite, contact, callTrackingSourceCondition.getSourceName());
                 }
-
-                this.workWithContact(leadFromSite, contact, callTrackingSourceCondition.getSourceName());
+                else{
+                    log.info("there is no phone number or email => pass");
+                }
 
                 leadFromSite.setState(LeadFromSite.State.DONE);
                 leadFromSiteRepository.save(leadFromSite);
