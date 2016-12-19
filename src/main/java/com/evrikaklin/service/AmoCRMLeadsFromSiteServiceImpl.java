@@ -1,12 +1,14 @@
 package com.evrikaklin.service;
 
-import com.evrikaklin.dmodel.CallTrackingSourceCondition;
-import com.evrikaklin.dmodel.LeadFromSite;
-import com.evrikaklin.dmodel.Site;
+import com.evrikaklin.dmodel.*;
 import com.evrikaklin.dto.api.amocrm.*;
 import com.evrikaklin.dto.api.amocrm.response.AmoCRMCreatedEntityResponse;
 import com.evrikaklin.dto.site.Lead;
 import com.evrikaklin.exception.APIAuthException;
+import com.evrikaklin.exception.LogicException;
+import com.evrikaklin.exception.LogicNotSuccessfullException;
+import com.evrikaklin.exception.LogicSuccessfullException;
+import com.evrikaklin.repository.ChangedEntityStatusRepository;
 import com.evrikaklin.repository.LeadFromSiteRepository;
 import com.evrikaklin.repository.SiteRepository;
 import org.slf4j.Logger;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -49,6 +52,9 @@ public class AmoCRMLeadsFromSiteServiceImpl implements AmoCRMLeadsFromSiteServic
 
     private Long leadFromSiteTagId;
 
+    private Long[] closedStatusesIds;
+    private Long[] successfullyClosedStatusesIds;
+
 
     private Long sourceLeadsCustomField;
     private Long sourceContactsCustomField;
@@ -72,6 +78,8 @@ public class AmoCRMLeadsFromSiteServiceImpl implements AmoCRMLeadsFromSiteServic
     @Autowired
     SiteRepository siteRepository;
 
+    @Autowired
+    ChangedEntityStatusRepository changedEntityStatusRepository;
 
 
     @Override
@@ -581,5 +589,111 @@ public class AmoCRMLeadsFromSiteServiceImpl implements AmoCRMLeadsFromSiteServic
     @Override
     public void setCleanTypeLeadField(Long cleanTypeLeadField) {
         this.cleanTypeLeadField = cleanTypeLeadField;
+    }
+
+    @Override
+    public ChangedDealStatus processSuccessfullyClosedDeal(ChangedDealStatus changedDealStatus) throws APIAuthException {
+        log.info("work with deal#" + changedDealStatus.getEntityId());
+
+        try{
+            this.workWithChangedDealStatus(changedDealStatus);
+        }
+        catch (LogicSuccessfullException e){
+            changedDealStatus.setReactionState(ChangedEntityStatus.ReactionState.DONE);
+            changedEntityStatusRepository.save(changedDealStatus);
+
+            return changedDealStatus;
+        }
+        catch (LogicException e){
+            throw new IllegalStateException(e.getMessage());
+        }
+
+        changedDealStatus.setReactionState(ChangedEntityStatus.ReactionState.DONE);
+        changedEntityStatusRepository.save(changedDealStatus);
+        return changedDealStatus;
+    }
+
+    private void workWithChangedDealStatus(ChangedDealStatus changedDealStatus) throws APIAuthException, LogicException {
+        AmoCRMLead lead = amoCRMService.getLeadById(changedDealStatus.getEntityId());
+        if(lead == null){
+            log.error("Lead#".concat(changedDealStatus.getEntityId().toString()).concat(" not found in CRM. Nothing to do"));
+            throw new LogicSuccessfullException("Lead#".concat(changedDealStatus.getEntityId().toString()).concat(" not found in CRM. Nothing to do"));
+        }
+
+        List<AmoCRMContactsLeadsLink> amoCRMContactsLeadsLinks = amoCRMService.getContactsLeadsLinksByLead(lead);
+
+        // Находим все связанные контакты и убеждаемся, что нет открытых сделок
+        if(amoCRMContactsLeadsLinks != null && amoCRMContactsLeadsLinks.size() > 0){
+            for(AmoCRMContactsLeadsLink amoCRMContactsLeadsLink : amoCRMContactsLeadsLinks){
+                log.info("contact found: id#" + amoCRMContactsLeadsLink.getContact_id().toString());
+
+                AmoCRMContact crmContact = amoCRMService.getContactById(amoCRMContactsLeadsLink.getContact_id());
+                List<AmoCRMContactsLeadsLink> amoCRMContactsLeadsLinksForContact = amoCRMService.getContactsLeadsLinksByContact(crmContact);
+
+                for(AmoCRMContactsLeadsLink leadsLink : amoCRMContactsLeadsLinksForContact){
+                    AmoCRMLead crmLead = amoCRMService.getLeadById(leadsLink.getLead_id());
+                    if(!Arrays.asList(this.closedStatusesIds).contains(crmLead.getStatus_id())){
+                        // Сделка не закрыта
+                        log.info("Not closed lead#" + leadsLink.getLead_id() + " found");
+                        throw new LogicSuccessfullException("Not closed lead#" + leadsLink.getLead_id() + " found");
+                    }
+                }
+            }
+
+            // Создаем новую сделку
+            log.info("Creating new Lead from lead#" + lead.getId());
+            AmoCRMLead newLead = new AmoCRMLead();
+            newLead.setResponsible_user_id(lead.getResponsible_user_id());
+            newLead.setName("[Автоматически пересоздана из:] " + lead.getName());
+
+            for(AmoCRMCustomField amoCRMCustomField : lead.getCustom_fields()){
+                // Если у исходного Lead заполнен источник, берем его
+                if(amoCRMCustomField.getId().equals(this.getSourceLeadsCustomField()) && amoCRMCustomField.getValues().size() > 0){
+                    String[] val = {amoCRMCustomField.getValues().get(0).getValue()};
+                    newLead.addStringValuesToCustomField(this.getSourceLeadsCustomField(), val);
+                }
+
+                // Если заполнен Рекламный канал, берем его
+                if(amoCRMCustomField.getId().equals(this.getMarketingChannelLeadsCustomField()) && amoCRMCustomField.getValues().size() > 0){
+                    String[] val = {amoCRMCustomField.getValues().get(0).getValue()};
+                    newLead.addStringValuesToCustomField(this.getMarketingChannelLeadsCustomField(), val);
+                }
+            }
+
+            AmoCRMCreatedEntityResponse amoCRMCreatedEntityResponse = amoCRMService.addLead(newLead);
+            if(amoCRMCreatedEntityResponse.getId() != null){
+                log.info("created lead#" + amoCRMCreatedEntityResponse.getId().toString());
+
+                AmoCRMLead lead1 = amoCRMService.getLeadById(amoCRMCreatedEntityResponse.getId());
+                for(AmoCRMContactsLeadsLink amoCRMContactsLeadsLink : amoCRMContactsLeadsLinks) {
+                    AmoCRMContact contact = amoCRMService.getContactById(amoCRMContactsLeadsLink.getContact_id());
+                    if(contact != null) {
+                        amoCRMService.addContactToLead(contact, lead1);
+                    }
+                }
+            }
+            else{
+                log.error("error creating lead!");
+                throw new LogicNotSuccessfullException("Lead was not created with unknown reason!");
+            }
+        }
+    }
+
+    public Long[] getClosedStatusesIds() {
+        return closedStatusesIds;
+    }
+
+    @Override
+    public void setClosedStatusesIds(Long[] closedStatusesIds) {
+        this.closedStatusesIds = closedStatusesIds;
+    }
+
+    public Long[] getSuccessfullyClosedStatusesIds() {
+        return successfullyClosedStatusesIds;
+    }
+
+    @Override
+    public void setSuccessfullyClosedStatusesIds(Long[] successfullyClosedStatusesIds) {
+        this.successfullyClosedStatusesIds = successfullyClosedStatusesIds;
     }
 }

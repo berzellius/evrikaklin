@@ -32,6 +32,8 @@ public interface AmoCRMService {
 
     void addContactsToLead(ArrayList<AmoCRMContact> amoCRMContacts, AmoCRMLead amoCRMLead) throws APIAuthException;
 
+    List<AmoCRMContactsLeadsLink> getContactsLeadsLinksByLead(AmoCRMLead amoCRMLead) throws APIAuthException;
+
     List<AmoCRMContactsLeadsLink> getContactsLeadsLinksByContact(AmoCRMContact amoCRMContact) throws APIAuthException;
 
     List<AmoCRMContact> getContactsByQuery(String query) throws APIAuthException;

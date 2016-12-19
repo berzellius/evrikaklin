@@ -10,6 +10,8 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -18,7 +20,7 @@ import java.util.Date;
  * Created by berz on 22.06.2016.
  */
 //@Component
-public class SchedulerImplTest implements MainScheduler {
+public class  SchedulerImplTest implements MainScheduler {
 
     @Autowired
     JobLauncher jobLauncher;
@@ -36,10 +38,20 @@ public class SchedulerImplTest implements MainScheduler {
     Job newLeadsFromSiteToCRMJob;
 
     @Autowired
+    ScheduledTasks scheduledTasks;
+
+    @Autowired
     AddingCallNotesToEmptyLead addingCallNotesToEmptyLead;
 
     @Autowired
     CallTrackingAPIService callTrackingAPIService;
+
+    //@Scheduled(fixedDelay = 30000)
+    //@Scheduled(cron = "0 0/3 * * * *")
+    @Override
+    public void recreateSuccessfullDeals(){
+        scheduledTasks.runRecreateSuccessfullDeals();
+    }
 
     //@Scheduled(fixedDelay = 30000)
     @Override

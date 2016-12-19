@@ -1,14 +1,23 @@
 package com.evrikaklin.service;
 
-import com.evrikaklin.dto.site.Call;
-import com.evrikaklin.dto.site.CallRequest;
-import com.evrikaklin.dto.site.Result;
+import com.evrikaklin.dmodel.ChangedDealStatus;
+import com.evrikaklin.dmodel.ChangedEntityStatus;
+import com.evrikaklin.dmodel.LoadDataFromBackendSettings;
+import com.evrikaklin.dto.site.*;
 import com.evrikaklin.repository.CallRepository;
+import com.evrikaklin.repository.ChangedEntityStatusRepository;
+import com.evrikaklin.repository.LoadDataFromBackendSettingsRepository;
 import com.evrikaklin.scheduling.ScheduledTasks;
+import com.evrikaklin.settings.APISettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -26,6 +35,13 @@ public class WebhookServiceImpl implements WebhookService {
     @Autowired
     CallTrackingAPIService callTrackingAPIService;
 
+    @Autowired
+    LoadDataFromBackendSettingsRepository loadDataFromBackendSettingsRepository;
+
+    @Autowired
+    ChangedEntityStatusRepository changedEntityStatusRepository;
+
+    private static final Logger log = LoggerFactory.getLogger(WebhookService.class);
 
     /*
     *
@@ -41,6 +57,81 @@ public class WebhookServiceImpl implements WebhookService {
         }
 
         return new Result("success");
+    }
+
+    @Override
+    @Transactional
+    public Result newDealsStatusesChanges(DealsStatusesChangedRequest dealsStatusesChangedRequest) {
+        LoadDataFromBackendSettings loadDataFromBackendSettings = loadDataFromBackendSettingsRepository.findOneBySettingType(LoadDataFromBackendSettings.SettingType.PASSWORD);
+        String password = loadDataFromBackendSettings.getValue();
+
+        if(
+                dealsStatusesChangedRequest.getPassword() == null ||
+                        password == null ||
+                        !dealsStatusesChangedRequest.getPassword().equals(password)
+                ){
+            log.error("Wrong password!");
+            return new Result("error with password");
+        }
+
+        if(
+                dealsStatusesChangedRequest.getStatusChanges() == null ||
+                        dealsStatusesChangedRequest.getStatusChanges().size() == 0
+                ){
+            log.error("Empty changes list!");
+            return new Result("error: empty changes list!");
+        }
+
+        ArrayList<ChangedDealStatus> changedDealStatuses = new ArrayList<>();
+
+        for(DealStatusChangedDTO dealStatusChangedDTO : dealsStatusesChangedRequest.getStatusChanges()){
+            log.info("dealId: " + dealStatusChangedDTO.getDealId().toString());
+            log.info("statusId: " + dealStatusChangedDTO.getStatusId().toString());
+            log.info("timestamp: " + dealStatusChangedDTO.getTimestamp().toString());
+
+            Date date = new Date();
+            date.setTime(dealStatusChangedDTO.getTimestamp() * 1000);
+
+            if(
+                    dealStatusChangedDTO.getStatusId() == null ||
+                            dealStatusChangedDTO.getDealId() == null ||
+                            dealStatusChangedDTO.getTimestamp() == null
+                    ){
+                throw new IllegalArgumentException("empty argument in " + dealStatusChangedDTO.toString());
+            }
+
+            if(Arrays.asList(APISettings.AmoCRMLeadSuccesfullyClosedStatuses).contains(dealStatusChangedDTO.getStatusId())){
+
+                // Закрываем все изменения, произошедшие до текущего
+                List<ChangedEntityStatus> changedDealStatusListBefore = changedEntityStatusRepository.findByEntityTypeAndEntityIdAndReactionStateAndDtmCreateLessThan(
+                        "deal", dealStatusChangedDTO.getDealId(), ChangedEntityStatus.ReactionState.NEW, date
+                );
+                for(ChangedEntityStatus changedEntityStatus : changedDealStatusListBefore){
+                    changedEntityStatus.setReactionState(ChangedEntityStatus.ReactionState.DONE);
+                }
+                changedEntityStatusRepository.save(changedDealStatusListBefore);
+
+                ChangedDealStatus changedDealStatus = new ChangedDealStatus();
+                changedDealStatus.setStatusId(dealStatusChangedDTO.getStatusId());
+                // Если уже есть более поздние изменения, то сразу ставим DONE
+                changedDealStatus.setReactionState(
+                        (
+                                changedEntityStatusRepository.countByEntityTypeAndEntityIdAndReactionStateAndDtmCreateGreaterThan(
+                                "deal", dealStatusChangedDTO.getDealId(), ChangedEntityStatus.ReactionState.NEW, date
+                            ) > 0
+                        )? ChangedEntityStatus.ReactionState.DONE : ChangedEntityStatus.ReactionState.NEW
+                );
+                changedDealStatus.setEntityId(dealStatusChangedDTO.getDealId());
+                changedDealStatus.setDtmCreate(date);
+
+                changedDealStatuses.add(changedDealStatus);
+            }
+        }
+
+        changedEntityStatusRepository.save(changedDealStatuses);
+
+        return new Result("success");
+
     }
 
 

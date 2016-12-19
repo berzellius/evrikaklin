@@ -7,6 +7,10 @@ import org.springframework.scheduling.annotation.Scheduled;
  */
 public interface MainScheduler {
 
+
+    @Scheduled(fixedDelay = 30000)
+    void recreateSuccessfullDeals();
+
     @Scheduled(fixedDelay = 30000)
     void newLeadsFromSiteToCRM();
 

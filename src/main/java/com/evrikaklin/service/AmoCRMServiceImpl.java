@@ -19,7 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -259,6 +258,24 @@ public class AmoCRMServiceImpl implements AmoCRMService {
                             amoCRMCreatedContactsResponse.toString()
             );
         }
+    }
+
+    @Override
+    public List<AmoCRMContactsLeadsLink> getContactsLeadsLinksByLead(AmoCRMLead amoCRMLead) throws APIAuthException {
+        AmoCRMContactsLeadsLinksRequest amoCRMContactsLeadsLinksRequest = new AmoCRMContactsLeadsLinksRequest();
+        amoCRMContactsLeadsLinksRequest.setDeals_link(amoCRMLead.getId());
+
+        HttpEntity<AmoCRMContactsLeadsLinksResponse> response = request(
+                amoCRMContactsLeadsLinksRequest, "contacts/links", AmoCRMContactsLeadsLinksResponse.class
+        );
+
+        AmoCRMContactsLeadsLinksResponse amoCRMContactsLeadsLinksResponse = response.getBody();
+
+        if (amoCRMContactsLeadsLinksResponse == null || amoCRMContactsLeadsLinksResponse.getResponse() == null) {
+            return new LinkedList<>();
+        }
+
+        return amoCRMContactsLeadsLinksResponse.getResponse().getLinks();
     }
 
     @Override

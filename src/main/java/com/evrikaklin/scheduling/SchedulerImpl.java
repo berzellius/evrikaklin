@@ -39,6 +39,9 @@ public class SchedulerImpl implements MainScheduler {
     Job newLeadsFromSiteToCRMJob;
 
     @Autowired
+    Job recreatingSuccessfullDealsJob;
+
+    @Autowired
     AddingCallNotesToEmptyLead addingCallNotesToEmptyLead;
 
     @Autowired
@@ -46,6 +49,13 @@ public class SchedulerImpl implements MainScheduler {
 
     @Autowired
     ScheduledTasks scheduledTasks;
+
+    @Scheduled(cron = "0 0/10 * * * *")
+    //@Scheduled(fixedDelay = 30000)
+    @Override
+    public void recreateSuccessfullDeals(){
+        scheduledTasks.runRecreateSuccessfullDeals();
+    }
 
     @Scheduled(fixedDelay = 60000)
     @Override

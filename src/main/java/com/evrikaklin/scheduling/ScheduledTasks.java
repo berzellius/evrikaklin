@@ -12,4 +12,6 @@ public interface ScheduledTasks {
     void runCallsImport();
 
     void runImportCallsToCRM();
+
+    void runRecreateSuccessfullDeals();
 }

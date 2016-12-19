@@ -1,8 +1,11 @@
 package com.evrikaklin.web;
 
+import com.evrikaklin.dmodel.LoadDataFromBackendSettings;
 import com.evrikaklin.dto.site.CallRequest;
+import com.evrikaklin.dto.site.DealsStatusesChangedRequest;
 import com.evrikaklin.dto.site.LeadRequest;
 import com.evrikaklin.dto.site.Result;
+import com.evrikaklin.repository.LoadDataFromBackendSettingsRepository;
 import com.evrikaklin.service.CallsService;
 import com.evrikaklin.service.WebhookService;
 import javassist.NotFoundException;
@@ -23,7 +26,25 @@ public class RestController extends BaseController {
     CallsService callsService;
 
     @Autowired
+    LoadDataFromBackendSettingsRepository loadDataFromBackendSettingsRepository;
+
+    @Autowired
     WebhookService webhookService;
+
+    @RequestMapping(
+            value = "deal_status_changes",
+            method = RequestMethod.POST,
+            consumes="application/json",
+            produces="application/json"
+    )
+    @ResponseBody
+    public Result addDealStatusChanges(
+            @RequestBody
+            DealsStatusesChangedRequest dealsStatusesChangedRequest
+    ){
+
+        return webhookService.newDealsStatusesChanges(dealsStatusesChangedRequest);
+    }
 
     @RequestMapping(
             value = "lead_from_site",

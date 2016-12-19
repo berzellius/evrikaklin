@@ -1,5 +1,6 @@
 package com.evrikaklin.service;
 
+import com.evrikaklin.dmodel.ChangedDealStatus;
 import com.evrikaklin.dmodel.LeadFromSite;
 import com.evrikaklin.dto.api.amocrm.AmoCRMLead;
 import com.evrikaklin.exception.APIAuthException;
@@ -61,4 +62,10 @@ public interface AmoCRMLeadsFromSiteService {
     void setBuildTypeLeadField(Long buildTypeLeadField);
 
     void setCleanTypeLeadField(Long cleanTypeLeadField);
+
+    ChangedDealStatus processSuccessfullyClosedDeal(ChangedDealStatus changedDealStatus) throws APIAuthException;
+
+    void setClosedStatusesIds(Long[] closedStatusesIds);
+
+    void setSuccessfullyClosedStatusesIds(Long[] successfullyClosedStatusesIds);
 }

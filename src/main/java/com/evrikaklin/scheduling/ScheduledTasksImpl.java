@@ -36,6 +36,9 @@ public class ScheduledTasksImpl implements ScheduledTasks {
     Job newLeadsFromSiteToCRMJob;
 
     @Autowired
+    Job recreatingSuccessfullDealsJob;
+
+    @Autowired
     AddingCallNotesToEmptyLead addingCallNotesToEmptyLead;
 
     @Autowired
@@ -96,6 +99,26 @@ public class ScheduledTasksImpl implements ScheduledTasks {
             jobLauncher.run(newCallsToCRMJob, jobParametersBuilder.toJobParameters());
 
             System.out.println("START calls to CRM job!");
+        } catch (JobExecutionAlreadyRunningException e) {
+            e.printStackTrace();
+        } catch (JobRestartException e) {
+            e.printStackTrace();
+        } catch (JobInstanceAlreadyCompleteException e) {
+            e.printStackTrace();
+        } catch (JobParametersInvalidException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void runRecreateSuccessfullDeals() {
+        try {
+
+            JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
+            jobParametersBuilder.addDate("start", new Date());
+            jobLauncher.run(recreatingSuccessfullDealsJob, jobParametersBuilder.toJobParameters());
+
+            System.out.println("START recreate successfull deals job!");
         } catch (JobExecutionAlreadyRunningException e) {
             e.printStackTrace();
         } catch (JobRestartException e) {

@@ -1,6 +1,7 @@
 package com.evrikaklin.service;
 
 import com.evrikaklin.dto.site.CallRequest;
+import com.evrikaklin.dto.site.DealsStatusesChangedRequest;
 import com.evrikaklin.dto.site.Result;
 import org.springframework.stereotype.Service;
 
@@ -10,4 +11,6 @@ import org.springframework.stereotype.Service;
 @Service
 public interface WebhookService {
     Result newCallFromWebhook(CallRequest callRequest);
+
+    Result newDealsStatusesChanges(DealsStatusesChangedRequest dealsStatusesChangedRequest);
 }

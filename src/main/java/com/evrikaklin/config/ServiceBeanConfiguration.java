@@ -89,9 +89,9 @@ public class ServiceBeanConfiguration {
     @Bean
     public ProjectSettings projectSettings(){
         // Локальный сервер
-        //return new LocalProjectSettings();
+        return new LocalProjectSettings();
         // Боевой сервер
-        return new RemoteProjectSettings();
+        //return new RemoteProjectSettings();
     }
 
     @Bean
@@ -212,6 +212,8 @@ public class ServiceBeanConfiguration {
         amoCRMLeadsFromSiteService.setAreaLeadField(APISettings.AmoCRMAreaLeadCustomField);
         amoCRMLeadsFromSiteService.setBuildTypeLeadField(APISettings.AmoCRMBuildTypeCustomField);
         amoCRMLeadsFromSiteService.setCleanTypeLeadField(APISettings.AmoCRMCleanTypeCustomField);
+        amoCRMLeadsFromSiteService.setClosedStatusesIds(APISettings.AmoCRMLeadClosedStatuses);
+        amoCRMLeadsFromSiteService.setSuccessfullyClosedStatusesIds(APISettings.AmoCRMLeadSuccesfullyClosedStatuses);
        // amoCRMLeadsFromSiteService.setProjectIdToLeadsSource(projectIdToLeadsSource());
 
 
