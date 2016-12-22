@@ -46,7 +46,7 @@ public class  SchedulerImplTest implements MainScheduler {
     @Autowired
     CallTrackingAPIService callTrackingAPIService;
 
-    //@Scheduled(fixedDelay = 30000)
+    @Scheduled(fixedDelay = 30000)
     //@Scheduled(cron = "0 0/3 * * * *")
     @Override
     public void recreateSuccessfullDeals(){

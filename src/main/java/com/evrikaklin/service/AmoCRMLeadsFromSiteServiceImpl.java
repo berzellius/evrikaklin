@@ -632,7 +632,7 @@ public class AmoCRMLeadsFromSiteServiceImpl implements AmoCRMLeadsFromSiteServic
 
                 for(AmoCRMContactsLeadsLink leadsLink : amoCRMContactsLeadsLinksForContact){
                     AmoCRMLead crmLead = amoCRMService.getLeadById(leadsLink.getLead_id());
-                    if(!Arrays.asList(this.closedStatusesIds).contains(crmLead.getStatus_id())){
+                    if(crmLead != null && !Arrays.asList(this.closedStatusesIds).contains(crmLead.getStatus_id())){
                         // Сделка не закрыта
                         log.info("Not closed lead#" + leadsLink.getLead_id() + " found");
                         throw new LogicSuccessfullException("Not closed lead#" + leadsLink.getLead_id() + " found");
