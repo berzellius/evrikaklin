@@ -12,6 +12,7 @@ import java.io.IOException;
 public class DalabmxSitesLeadsConverter implements AttributeConverter<Lead, String> {
     @Override
     public String convertToDatabaseColumn(Lead lead) {
+
         ObjectMapper objectMapper = new ObjectMapper();
         String s;
 
