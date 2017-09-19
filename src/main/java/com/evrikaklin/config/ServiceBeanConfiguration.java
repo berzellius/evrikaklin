@@ -8,7 +8,6 @@ import com.evrikaklin.scheduling.ScheduledTasks;
 import com.evrikaklin.scheduling.ScheduledTasksImpl;
 import com.evrikaklin.service.*;
 import com.evrikaklin.settings.APISettings;
-import com.evrikaklin.settings.LocalProjectSettings;
 import com.evrikaklin.settings.ProjectSettings;
 import com.evrikaklin.settings.RemoteProjectSettings;
 import org.springframework.context.annotation.Bean;
@@ -18,10 +17,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
-import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
-import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+//import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+//import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 /**
  * Created by berz on 20.10.14.
@@ -63,7 +64,7 @@ public class ServiceBeanConfiguration {
         return messageSource;
     }
 
-    @Bean
+    /*@Bean
     public LocaleChangeInterceptor localeChangeInterceptor(){
         LocaleChangeInterceptor localeChangeInterceptor=new LocaleChangeInterceptor();
         localeChangeInterceptor.setParamName("locale");
@@ -75,7 +76,7 @@ public class ServiceBeanConfiguration {
         SessionLocaleResolver localeResolver=new SessionLocaleResolver();
         localeResolver.setDefaultLocale(new Locale("ru","RU"));
         return localeResolver;
-    }
+    }*/
 
     @Bean
     public MultipartResolver multipartResolver() {
@@ -89,9 +90,9 @@ public class ServiceBeanConfiguration {
     @Bean
     public ProjectSettings projectSettings(){
         // Локальный сервер
-        return new LocalProjectSettings();
+        //return new LocalProjectSettings();
         // Боевой сервер
-        //return new RemoteProjectSettings();
+        return new RemoteProjectSettings();
     }
 
     @Bean

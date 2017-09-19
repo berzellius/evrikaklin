@@ -8,9 +8,11 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -37,6 +39,7 @@ public class RecreatingSuccessfullDeals {
     @PersistenceContext
     EntityManager entityManager;
 
+
     @Autowired
     JobBuilderFactory jobBuilderFactory;
 
@@ -46,17 +49,26 @@ public class RecreatingSuccessfullDeals {
 
     public static int PERIOD_DAYS = 30;
 
-    @Bean
-    ItemReader<ChangedDealStatus> changedDealStatusItemReader() {
+
+
+    // пустой destroyMethod, чтобы не было предупреждений об отсутствии метода "close"
+    // http://stackoverflow.com/questions/23089159/why-does-destroy-method-close-fail-for-jpapagingitemreader-configured-with-jav
+    @Bean(destroyMethod="")
+    @StepScope
+    ItemStreamReader<ChangedDealStatus> changedDealStatusItemReader() {
         JpaPagingItemReader<ChangedDealStatus> reader = new JpaPagingItemReader<>();
 
         reader.setEntityManagerFactory(entityManager.getEntityManagerFactory());
+
+
         reader.setQueryString("select cds from ChangedDealStatus cds where reactionState = :st and dtmCreate <= :dt");
 
         // Определяем дату на PERIOD_DAYS раньше
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         calendar.add(Calendar.DATE, (-1) * PERIOD_DAYS);
+
+        System.out.println("changed statuses from date: " + calendar.getTime());
 
         HashMap<String, Object> params = new LinkedHashMap<>();
         params.put("st", ChangedEntityStatus.ReactionState.NEW);
@@ -65,6 +77,7 @@ public class RecreatingSuccessfullDeals {
 
         return reader;
     }
+
 
     @Bean
     ItemProcessor<ChangedDealStatus, ChangedDealStatus> changedDealStatusProcessor() {
@@ -87,13 +100,13 @@ public class RecreatingSuccessfullDeals {
     @Bean
     public Step processChangedDealStatusStep(
             StepBuilderFactory stepBuilderFactory,
-            ItemReader<ChangedDealStatus> changedDealStatusItemReader,
+            ItemReader<ChangedDealStatus> changedDealStatusReader,
             ItemProcessor<ChangedDealStatus, ChangedDealStatus> changedDealStatusProcessor
 
     ) {
         return stepBuilderFactory.get("processChangedDealStatusStep")
                 .<ChangedDealStatus, ChangedDealStatus>chunk(1)
-                .reader(changedDealStatusItemReader)
+                .reader(changedDealStatusReader)
                 .processor(changedDealStatusProcessor)
                 .faultTolerant()
                 .skip(RuntimeException.class)
@@ -106,6 +119,8 @@ public class RecreatingSuccessfullDeals {
             Step processChangedDealStatusStep
     ) {
         RunIdIncrementer runIdIncrementer = new RunIdIncrementer();
+
+
 
         return jobBuilderFactory.get("recreatingSuccessfullDealsJob")
                 .incrementer(runIdIncrementer)

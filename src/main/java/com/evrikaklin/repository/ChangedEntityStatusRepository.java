@@ -1,7 +1,6 @@
 package com.evrikaklin.repository;
 
 import com.evrikaklin.dmodel.ChangedEntityStatus;
-import com.evrikaklin.dmodel.ChangedEntityStatus.ReactionState;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,6 +15,8 @@ public interface ChangedEntityStatusRepository extends CrudRepository<ChangedEnt
     public List<ChangedEntityStatus> findByEntityTypeAndEntityIdAndReactionStateAndDtmCreateLessThan(String entityType, Long entityId, ChangedEntityStatus.ReactionState reactionState, Date dtmCreate);
 
     public List<ChangedEntityStatus> findByEntityTypeAndEntityIdAndReactionStateAndDtmCreateGreaterThan(String entityType, Long entityId, ChangedEntityStatus.ReactionState reactionState, Date dtmCreate);
+
+    public ChangedEntityStatus findOneByEntityTypeAndReactionStateAndDtmCreateLessThan(String entityType, ChangedEntityStatus.ReactionState reactionState, Date dtmCreate);
 
     public Long countByEntityTypeAndEntityIdAndReactionStateAndDtmCreateGreaterThan(String entityType, Long entityId, ChangedEntityStatus.ReactionState reactionState, Date dtmCreate);
 }

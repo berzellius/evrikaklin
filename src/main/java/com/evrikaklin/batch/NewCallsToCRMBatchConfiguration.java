@@ -14,9 +14,7 @@ import org.springframework.batch.item.*;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -48,6 +46,7 @@ public class NewCallsToCRMBatchConfiguration {
     AmoCRMService amoCRMService;
 
     @Bean
+    //@Scope(value = "step", proxyMode = ScopedProxyMode.TARGET_CLASS)
     public ItemReader<Call> callReader(){
         JpaPagingItemReader<Call> reader = new JpaPagingItemReader<>();
         reader.setEntityManagerFactory(entityManager.getEntityManagerFactory());

@@ -13,9 +13,7 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -41,6 +39,7 @@ public class LeadsFromSiteImportToCRM {
     private AmoCRMLeadsFromSiteService amoCRMLeadsFromSiteService;
 
     @Bean
+    //@Scope(value = "step", proxyMode = ScopedProxyMode.TARGET_CLASS)
     ItemReader<LeadFromSite> leadFromSiteItemReader(){
         JpaPagingItemReader<LeadFromSite> reader = new JpaPagingItemReader<>();
         reader.setEntityManagerFactory(entityManager.getEntityManagerFactory());
