@@ -52,6 +52,9 @@ public class AmoCRMLeadsFromSiteServiceImpl implements AmoCRMLeadsFromSiteServic
 
     private Long leadFromSiteTagId;
 
+
+    private Long roistatVisitField;
+
     private Long[] closedStatusesIds;
     private Long[] successfullyClosedStatusesIds;
 
@@ -254,6 +257,15 @@ public class AmoCRMLeadsFromSiteServiceImpl implements AmoCRMLeadsFromSiteServic
 
 
         lead.tag(this.getLeadFromSiteTagId(), "Заявка с сайта");
+
+        // roistat visit
+        log.info("setting roistat_visit field");
+        String roistatVisit = leadFromSite.getLead().getRoistat_visit();
+
+        if(roistatVisit != null){
+            String[] roistatVisitData = {roistatVisit};
+            lead.addStringValuesToCustomField(this.getRoistatVisitField(), roistatVisitData);
+        }
 
         log.info("creating lead for leadFromSite..");
 
@@ -499,6 +511,16 @@ public class AmoCRMLeadsFromSiteServiceImpl implements AmoCRMLeadsFromSiteServic
     @Override
     public void setEmailContactCustomField(Long emailContactCustomField) {
         this.emailContactCustomField = emailContactCustomField;
+    }
+
+
+    public Long getRoistatVisitField() {
+        return roistatVisitField;
+    }
+
+    @Override
+    public void setRoistatVisitField(Long roistatVisitField) {
+        this.roistatVisitField = roistatVisitField;
     }
 
     public String getEmailContactEnum() {

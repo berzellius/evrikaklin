@@ -43,6 +43,8 @@ public interface AmoCRMLeadsFromSiteService {
 
     void setEmailContactCustomField(Long emailContactCustomField);
 
+    void setRoistatVisitField(Long roistatVisitField);
+
     void setEmailContactEnum(String emailContactEnum);
 
     void setSourceContactsCustomField(Long sourceContactsCustomField);
