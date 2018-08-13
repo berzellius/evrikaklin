@@ -23,6 +23,7 @@ public class Lead {
     private String clean_type;
     private String referer;
     private String origin;
+    private String roistat_visit;
     /*
     * Utm
     */
@@ -142,5 +143,13 @@ public class Lead {
 
     public void setClean_type(String clean_type) {
         this.clean_type = clean_type;
+    }
+
+    public String getRoistat_visit() {
+        return roistat_visit;
+    }
+
+    public void setRoistat_visit(String roistat_visit) {
+        this.roistat_visit = roistat_visit;
     }
 }

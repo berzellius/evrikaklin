@@ -215,6 +215,7 @@ public class ServiceBeanConfiguration {
         amoCRMLeadsFromSiteService.setCleanTypeLeadField(APISettings.AmoCRMCleanTypeCustomField);
         amoCRMLeadsFromSiteService.setClosedStatusesIds(APISettings.AmoCRMLeadClosedStatuses);
         amoCRMLeadsFromSiteService.setSuccessfullyClosedStatusesIds(APISettings.AmoCRMLeadSuccesfullyClosedStatuses);
+        amoCRMLeadsFromSiteService.setRoistatVisitField(APISettings.AMOCRMLeadRoistatVisit);
        // amoCRMLeadsFromSiteService.setProjectIdToLeadsSource(projectIdToLeadsSource());
 
 
